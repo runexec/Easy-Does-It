@@ -1,0 +1,144 @@
+body {
+
+}
+
+.tool-nav {
+    text-align:center;
+    padding:10px;
+}
+
+.main-header {
+    text-align:center;
+    margin: 40px 0px 5px 0px;
+
+}
+
+.tool-nav.options {
+    margin-top:10px;
+    border-width: 0px;
+}
+
+.tool-nav.sub-header {
+    padding: 25px 0px 4px 0px;
+    text-align:center;
+    font-size:20px;
+}
+
+.tool-nav.options p {
+    width:90%;
+    text-align:center; 
+    margin: 6px auto 20px auto;
+}
+
+a {
+    color: inherit;
+    text-decoration:none;
+}
+
+a:visited {
+    color: inherit;
+    text-decoration:none;
+}
+
+a:hover {
+    color: inherit;
+    text-decoration:none;
+}
+
+.header {
+    text-align:center;
+    font-size: 16px;
+    margin: 20px 0px 0px 0px;
+    text-transform: uppercase;
+    border-color: hsl(200,10%,70%);
+    border-style: solid;
+    border-width: 0px 0px 1px 0px;
+    background-color: hsl(200,10%,95%);
+}
+
+.attr {
+    height:190px;
+    font-size:14px;
+    font-weight:bold;
+    text-align:center;
+    padding: 5px 10px 10px 10px;
+    border-color: hsl(200,10%,70%);
+    border-style: solid;
+    border-width: 1px 0px 1px 0px;
+}
+
+.attr:hover {
+    border-color: hsl(200,10%,40%);
+    border-width: 4px 0px 1px 0px;
+    padding: 2px 10px 10px 10px;
+}
+
+.icon {
+    font-size:50px;
+    color:#000;
+}
+
+.icon.strike {
+    color:#FFF;
+    text-decoration: line-through;
+}
+
+.strike {
+    color:#000;
+}
+
+
+.table.add-icon {
+    padding: 15px 0px 0px 0px;
+    font-size:18px;
+    text-align:center;
+}
+
+.table.icon {
+    font-size:30px;
+    margin: 0px 10px 0px 10px;
+}
+
+.table.icon.entry {
+    float:left;
+}
+
+
+.table.task {
+    padding:20px 0px 20px 0px;
+    font-size:16px;
+}
+
+.table.note {
+    margin:10px;
+    font-size:16px;
+}
+
+.table.icon.text {
+    font-size:14px;
+    padding-left:10px;
+    margin-top:10px;
+}
+
+.menu.option {
+    font-size: 20px;
+}
+
+table tr td {
+    border-style:solid;
+    border-width: 0px 0px 1px 0px;
+    border-color: hsl(200,5%,70%);
+    padding:0px;
+}
+
+
+.percent {
+    font-size:35px;
+}
+
+.control {
+    text-align:center;
+    float: right;
+    margin: 10px 0px 5px 40px;
+    margin-top: 20px;
+}
