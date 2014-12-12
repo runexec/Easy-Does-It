@@ -2,6 +2,8 @@
 
 Client-side Standalone TODO
 
+[Live Demo](https://cdn.rawgit.com/runexec/Easy-Does-It/30fa5a87a9640216cb5ddf1671e264550e36edcf/STANDALONE/index.html)
+
 ![alt text](preview/intro.png "Preview Intro Image")
 
 
