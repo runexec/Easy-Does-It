@@ -19,6 +19,14 @@ Screen responsive layout.
 
 Standalone version is available as STANDALONE.zip .
 
+# TODO
+
+* Change the icons from WTF to something that doesn't suck
+* Add server detection
+* Add server aware specific features
+* Slap on some versioning information somewhere
+* Async calls to prevent blocks during large renders
+
 ## Development
 
 Start a REPL (in a terminal: `lein repl`, or from Emacs: open a
