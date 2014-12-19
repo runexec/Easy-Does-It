@@ -27,6 +27,14 @@ Standalone version is available as STANDALONE.zip .
 * Slap on some versioning information somewhere
 * Async calls to prevent blocks during large renders
 
+# Version 2 Preview
+
+![alt text](preview/v2.mobile.preview.png "Preview Responsive Image")
+
+![alt text](preview/v2.preview.png "Preview Responsive Image")
+
+
+
 ## Development
 
 Start a REPL (in a terminal: `lein repl`, or from Emacs: open a
