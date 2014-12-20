@@ -33,8 +33,6 @@ Standalone version is available as STANDALONE.zip .
 
 ![alt text](preview/v2.preview.png "Preview Responsive Image")
 
-
-
 ## Development
 
 Start a REPL (in a terminal: `lein repl`, or from Emacs: open a
@@ -62,26 +60,6 @@ in 21.36 seconds.`, you're ready to go. Browse to
 
 **Attention: It is not longer needed to run `lein figwheel`
   separately. This is now taken care of behind the scenes**
-
-## Trying it out
-
-If all is well you now have a browser window saying 'Hello Chestnut',
-and a REPL prompt that looks like `cljs.user=>`.
-
-Open `resources/public/css/style.css` and change some styling of the
-H1 element. Notice how it's updated instantly in the browser.
-
-Open `src/cljs/easy-does-it/core.cljs`, and change `dom/h1` to
-`dom/h2`. As soon as you save the file, your browser is updated.
-
-In the REPL, type
-
-```
-(ns easy-does-it.core)
-(swap! app-state assoc :text "Interactivity FTW")
-```
-
-Notice again how the browser updates.
 
 ## Deploying to Heroku
 
