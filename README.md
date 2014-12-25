@@ -29,6 +29,8 @@ Standalone version is available as STANDALONE.zip .
 
 # Version 2 Preview
 
+[See it in action](preview/v2.preview.ogv)
+
 ![alt text](preview/v2.mobile.preview.png "Preview Responsive Image")
 
 ![alt text](preview/v2.mobile.preview.2.png "Preview Responsive Image 2")
