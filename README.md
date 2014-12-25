@@ -29,7 +29,7 @@ Standalone version is available as STANDALONE.zip .
 
 # Version 2 Preview
 
-[See it in action](preview/v2.preview.ogv)
+[See it in action](https://raw.githubusercontent.com/runexec/Easy-Does-It/master/preview/v2.preview.ogv)
 
 ![alt text](preview/v2.mobile.preview.png "Preview Responsive Image")
 
