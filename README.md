@@ -31,7 +31,11 @@ Standalone version is available as STANDALONE.zip .
 
 ![alt text](preview/v2.mobile.preview.png "Preview Responsive Image")
 
-![alt text](preview/v2.preview.png "Preview Responsive Image")
+![alt text](preview/v2.mobile.preview.2.png "Preview Responsive Image 2")
+
+![alt text](preview/v2.preview.png "Preview Image")
+
+![alt text](preview/v2.preview.2.png "Preview Image")
 
 ## Development
 
