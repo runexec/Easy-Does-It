@@ -1,144 +1,273 @@
 body {
-
-}
-
-.tool-nav {
-    text-align:center;
-    padding:10px;
-}
-
-.main-header {
-    text-align:center;
-    margin: 40px 0px 5px 0px;
-
-}
-
-.tool-nav.options {
-    margin-top:10px;
-    border-width: 0px;
-}
-
-.tool-nav.sub-header {
-    padding: 25px 0px 4px 0px;
-    text-align:center;
-    font-size:20px;
-}
-
-.tool-nav.options p {
-    width:90%;
-    text-align:center; 
-    margin: 6px auto 20px auto;
+    background-color:hsl(200,20%,5%);
+    color:hsl(200,100%,60%);
 }
 
 a {
-    color: inherit;
+    color:inherit;
     text-decoration:none;
-}
-
-a:visited {
-    color: inherit;
-    text-decoration:none;
+    padding: 10px 0px 10px 0px;
 }
 
 a:hover {
-    color: inherit;
-    text-decoration:none;
+    color:inherit;
+    text-decoration:underline;
 }
 
-.header {
+.stat {
     text-align:center;
-    font-size: 16px;
-    margin: 20px 0px 0px 0px;
-    text-transform: uppercase;
-    border-color: hsl(200,10%,70%);
-    border-style: solid;
-    border-width: 0px 0px 1px 0px;
-    background-color: hsl(200,10%,95%);
-}
-
-.attr {
-    height:190px;
-    font-size:14px;
-    font-weight:bold;
-    text-align:center;
-    padding: 5px 10px 10px 10px;
-    border-color: hsl(200,10%,70%);
-    border-style: solid;
-    border-width: 1px 0px 1px 0px;
-}
-
-.attr:hover {
-    border-color: hsl(200,10%,40%);
-    border-width: 4px 0px 1px 0px;
-    padding: 2px 10px 10px 10px;
-}
-
-.icon {
-    font-size:50px;
-    color:#000;
-}
-
-.icon.strike {
-    color:#FFF;
-    text-decoration: line-through;
-}
-
-.strike {
-    color:#000;
+    margin:20px 0px 0px 0px;
+    padding:0px;
+    font-size:40px;
 }
 
 
-.table.add-icon {
-    padding: 15px 0px 0px 0px;
+.done  {
+    color:hsl(100,100%,60%);
+}
+
+.todo  {
+    color:hsl(65,100%,60%);
+}
+
+.started  {
+    color:hsl(30,100%,60%);
+}
+
+.removed  {
+    color:hsl(0,100%,60%);
+}
+
+
+#todo-list {
     font-size:18px;
-    text-align:center;
+
 }
 
-.table.icon {
-    font-size:30px;
-    margin: 0px 10px 0px 10px;
+.task {
+    border-style: solid;
+    border-width: 0px 0px 0px 3px;
+    padding: 10px 20px 10px 20px;
+    margin-top:40px;
 }
 
-.table.icon.entry {
-    float:left;
+#main-view {
+    margin-top:50px;
 }
 
+.task-action-panel {    
 
-.table.task {
-    padding:20px 0px 20px 0px;
-    font-size:16px;
 }
 
-.table.note {
-    margin:10px;
-    font-size:16px;
+.task-action-panel .action {
+    font-size:18px;
+    margin-right: 25px;
+    font-weight:bold;
 }
 
-.table.icon.text {
+.hover-editor {
+    display:none;
+}
+
+.hover-editor-visible {
     font-size:14px;
-    padding-left:10px;
-    margin-top:10px;
+    margin-top:20px;
+    width:90%;
+    height:200px;
+    display:block;
+    padding:10px;
+    color:#FFFFFF;
+    background-color:hsl(200,100%,5%);    
+    border-color:hsl(200,100%,50%);
+    border-width:1px;
+    border-style:dashed;
 }
 
-.menu.option {
-    font-size: 20px;
+.hover-editor-visible:focus {
+    border-color:#FFFFFF;
+    border-width:1px;
+    border-style:dashed;
 }
 
-table tr td {
-    border-style:solid;
-    border-width: 0px 0px 1px 0px;
-    border-color: hsl(200,5%,70%);
+.done .hover-editor-visible {
+    background-color:hsl(100,100%,5%);
+    border-color:hsl(100,100%,50%);
+}
+
+.todo .hover-editor-visible {
+    background-color:hsl(60,100%,5%);
+    border-color:hsl(60,100%,50%);
+}
+
+.started .hover-editor-visible {
+    background-color:hsl(25,100%,5%);
+    border-color:hsl(25,100%,50%);
+}
+
+.removed .hover-editor-visible {
+    background-color:hsl(0,100%,5%);
+    border-color:hsl(0,100%,50%);
+}
+
+.txt {
+    white-space:pre-wrap;
+}
+
+.done .txt {
+    color:hsl(100,100%,80%);
+}
+
+.todo .txt {
+    color:hsl(60,100%,80%);
+}
+
+.started .txt {
+    color:hsl(25,100%,80%);
+}
+
+.removed .txt {
+    color:hsl(0,100%,80%);
+}
+
+#button-row {
+    position:fixed;
+    font-weight:bold;
+    left:82%;
+}
+
+#button-row a {
     padding:0px;
 }
 
-
-.percent {
-    font-size:35px;
+#button-row a:hover {
+    text-decoration:none;
+    color:#FFFFFF;
 }
 
-.control {
-    text-align:center;
-    float: right;
-    margin: 10px 0px 5px 40px;
-    margin-top: 20px;
+#add-button {
+    font-size:80px;
+}
+
+#menu-button {
+    position:absolute;
+    font-size:35px;
+    margin-top:-30px;
+}
+
+#menu-message {
+    text-align:left;
+    display:none;
+    position:fixed;
+    background-color:hsl(200,20%,5%);
+    z-index:100;
+    border-width: 0px 0px 4px 0px;
+    width:100%;
+    height:100%;
+    padding:30px;
+}
+
+#menu-message button {
+    border-style:none;
+    background-color:hsl(200,100%,60%);
+    color:hsl(200,20%,5%);
+    font-size:18px;
+    width:65%;
+}
+
+#menu-message button.cancel {
+    background-color:hsl(0,100%,60%);
+    color:hsl(0,20%,5%);
+}
+
+
+#menu-message button.cancel:hover {
+    background-color:hsl(0,20%,5%);
+    color:hsl(0,100%,60%);
+}
+
+#menu-message button:hover {
+    color:hsl(200,100%,60%);
+    background-color:hsl(200,20%,5%);
+    border-color:hsl(200,100%,60%);
+    border-width:1px;
+    border-style:solid;
+}
+
+#add-message {
+    text-align:left;
+    display:none; 
+    position:fixed;
+    background-color:hsl(200,20%,5%);
+    z-index:100;
+    border-width: 0px 0px 4px 0px;
+    width:100%;
+    height:100%;
+    padding:30px;
+}
+
+#add-message button {
+    border-style:none;
+    background-color:hsl(200,100%,60%);
+    color:hsl(200,20%,5%);
+    font-size:18px;
+    width:65%;
+}
+
+#add-message button.cancel {
+    background-color:hsl(0,100%,60%);
+    color:hsl(0,20%,5%);
+}
+
+
+#add-message button.cancel:hover {
+    background-color:hsl(0,20%,5%);
+    color:hsl(0,100%,60%);
+}
+
+#add-message button:hover {
+    color:hsl(200,100%,60%);
+    background-color:hsl(200,20%,5%);
+    border-color:hsl(200,100%,60%);
+    border-width:1px;
+    border-style:solid;
+}
+
+#delete-message {
+    text-align:left;
+    display:none;
+    position:fixed;
+    background-color:hsl(200,20%,5%);
+    z-index:100;
+    border-width: 0px 0px 4px 0px;
+    width:100%;
+    height:100%;
+    padding:30px;
+}
+
+#delete-message button {
+    border-style:none;
+    background-color:hsl(200,100%,60%);
+    color:hsl(200,20%,5%);
+    font-size:18px;
+    width:65%;
+}
+
+#delete-message button.cancel {
+    margin-top:80px;
+    background-color:hsl(0,100%,60%);
+    color:hsl(0,20%,5%);
+}
+
+
+#delete-message button.cancel:hover {
+    background-color:hsl(0,20%,5%);
+    color:hsl(0,100%,60%);
+}
+
+#delete-message button:hover {
+    color:hsl(200,100%,60%);
+    background-color:hsl(200,20%,5%);
+    border-color:hsl(200,100%,60%);
+    border-width:1px;
+    border-style:solid;
 }

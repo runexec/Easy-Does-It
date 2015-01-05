@@ -1,316 +1,456 @@
 (ns easy-does-it.core
+  (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [om.core :as om :include-macros true]
             [om-tools.dom :as dom :include-macros true]
             [om-tools.core :refer-macros [defcomponent]]
+            [ajax.core :refer [POST GET]]
+            [cognitect.transit :as transit]
             [cljs.reader]))
 
-(def ^:dynamic *save-fp*
-  (str "today-todo.edn"))
+(defonce app-state 
+  (atom {:percent {:done 0
+                   :todo 0
+                   :started 0
+                   :removed 0}
+         :tasks []}))
 
-(def app-state
-  (atom {:percents [:todo :started :done :removed]
-         :tasks []
-         :notes []}))
+(def task-types [:done :todo :started :removed])
 
-(defn set-percent! [cursor percent-key n]
-  (om/update! cursor [percent-key] n))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Task Bar Items
 
-(defn render-percent! [percent-key]
-  (letfn [(calculate-percent [cursor k]
-            (let [tasks (:tasks cursor)                  
-                  amount (count
-                          (filter #(= (:type %) k) tasks))]
-              (->> tasks count (/ amount) (* 100) int)))]
-    (let [percent-id (str (name percent-key)
-                          "-percent")]
-    (om/root
-     (fn [app owner]
-       (om/component
-        (dom/span
-         (str (calculate-percent app percent-key)
-              "%"))))
-     app-state
-     {:target (. js/document
-                 (getElementById percent-id))}))))
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; TASKS
-
-
-(defn without-task [id cursor]
-  (->> (:tasks cursor)
-       (remove #(= id (:id %)))))
-
-(defn find-task [id cursor]
-  (first
-   (filter #(= id (:id %))
-           (:tasks cursor))))
-
-(defn new-task [text cursor]
-  (om/transact! cursor
-                [:tasks]
-                (fn [state]
-                  (conj state
-                        {:id (.getTime (js/Date.))
-                         :type :todo
-                         :text text}))))
-
-(defcomponent add-task-button-view [cursor _]
+(defcomponent task-bar-item [[type percent] _]
   (render
    [_]
-   (dom/a {:href "javascript:void(0);"
-           :on-click (fn [_]
-                       (if-let [text (js/prompt "TODO")]
-                         (new-task text cursor)))}
-    (dom/span #js {:dangerouslySetInnerHTML #js {:__html "&#10010;"}})
-    (dom/span {:class "table icon text"} "ADD"))))
+   (dom/div
+    {:class (str "stat " (name type))}
+    (dom/span {:class "percent"} percent "%"))))
 
+(defn new-task []
+  (let [id (gensym (-> js/Date .now str))
+        eid (str "editor-" id)]
+    {:id id
+     :type :todo
+     :txt "New Task"
+     :editor-id eid}))
 
-(om/root
- add-task-button-view
- app-state
- {:target (. js/document (getElementById "add-task"))})
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Percentage
 
-(defcomponent edit-task-view [[id cursor] _]
+(defn calculate-percent! [app]
+  (go
+    (om/transact! app
+                  (fn [state]
+                    (let [tasks (:tasks state)
+                          each-task (sort
+                                     (map :type tasks))
+                          hun-percent (count each-task)
+                          percent (fn [type]
+                                    (let [size (count
+                                                (filter #(= % type) each-task))]
+                                      (-> size
+                                          (/ hun-percent)
+                                          (* 100)
+                                          (.toPrecision 3))))]
+                      (assoc state
+                             :percent
+                             (apply hash-map
+                                    (mapcat #(vector % (percent %))
+                                            task-types))))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Task Bar
+
+(defcomponent task-bar [app _]
+  (will-mount
+   [_]
+   (calculate-percent! app))
+  (render 
+   [_]
+   (let [{:keys [todo
+                 done
+                 started
+                 removed]} (:percent app)]
+     (dom/div 
+      (om/build-all task-bar-item
+                    [[:done done]
+                     [:todo todo]
+                     [:started started]
+                     [:removed removed]])))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Task
+
+(defn change-task-type! [task app]
+  (let [next-task-type (second
+                        (drop-while #(not= (:type @task) %)
+                                    (cycle task-types)))]
+    (om/update! task [:type] next-task-type))
+  (calculate-percent! app))
+
+(defn task-on-click! [_ task app]
+  (go
+    (change-task-type! task app)))
+
+(defn task-editor-on-change! [evt task]
+  (let [txt (-> evt .-target .-value)]
+    (go
+      (om/update! task [:txt] txt))))
+
+(defn task-edit-on-click! [evt editor-id]
+  (let [off-txt "Edit"
+        on-txt "Close"
+        current-txt (-> evt .-target .-innerHTML)
+        [next-txt view] (if (= off-txt current-txt)
+                          [on-txt "hover-editor-visible"]
+                          [off-txt "hover-editor"])]
+    ;; set new text
+    (-> evt .-target .-innerHTML (set! next-txt))
+
+    ;; toggle editor display    
+    (-> js/document
+        (.getElementById editor-id)
+        .-className
+        (set! view))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Delete Confirm View Toggle
+
+(defn delete-message-show! [& _]
+  (go
+    (let [id "delete-message"]
+      (-> js/document
+          (.getElementById id)
+          .-style
+          .-display
+          (set! "block")))))
+
+(defn delete-message-close! [& _]
+  (go
+    (let [id "delete-message"]
+      (-> js/document
+          (.getElementById id)
+          .-style
+          .-display
+          (set! "none")))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Delete Confirm Event Functions
+
+(defn task-delete-on-click! [_ task app]
+  (go
+    (om/update! app [:delete-id] (:id @task))
+    (delete-message-show!)))
+
+(defn task-delete! [app]
+  (go
+    (om/transact! app
+                  [:tasks]
+                  (fn [state]
+                    (let [state (vec
+                                 (remove #(= (:delete-id app)
+                                             (:id %))
+                                         state))]
+                      state)))
+    (calculate-percent! app)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Delete Confirm View
+
+(defcomponent delete-confirm-view [app _]
   (render
    [_]
-   (let [text (:text (find-task id cursor))]
-     (dom/a
-      {:href "javascript:void(0);"}
-      (dom/div
-       {:class "control"
-        :on-click
-        (fn [_]
-          (if-let [text (js/prompt "Edit" text)]
-            (om/transact! cursor
-                          (fn [cursor]
-                            (let [wo (without-task id cursor)
-                                  task (find-task id cursor)
-                                  task (assoc task :text text)
-                                  tasks (vec
-                                         (sort-by :id
-                                                  (conj wo task)))]
-                              (assoc-in cursor [:tasks] tasks))))))}
-       "Edit")))))
+   (dom/div
+    {:id "delete-message"
+     :class "row"}
+    (dom/div
+     {:class "three columns"}
+     (dom/h4
+      {:id "delete-message-text"}
+      "Delete Task"))
+    (dom/div
+     {:class "four columns"}
+     (dom/div 
+      {:class "menu-option"} 
+      (dom/button
+       {:on-click delete-message-close!}
+       "Cancel"))
+     (dom/div
+      {:class "menu-option"} 
+      (dom/button {:class "cancel"
+                   :on-click (fn [_]
+                               (task-delete! app)
+                               (delete-message-close!))}
+                  "Yes"))))))
 
-(defcomponent delete-task-view [[id cursor] _]
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Task Item View
+
+(defcomponent task-view [[task app] _]
   (render
    [_]
-   (dom/a {:href "javascript:void(0);"}
-          (dom/div
-           {:class "control"
-            :on-click
-            (fn [_]
-              (if (js/confirm "WARNING: Delete?")
-                (om/transact! cursor
-                              (fn [cursor]
-                                (let [tasks (without-task id cursor)]
-                                  (assoc cursor :tasks tasks))))))}
-                   "Delete"))))
+   (let [{:keys [type txt editor-id]} task
+         class (name type)
+         on-click #(task-on-click! % task app)
+         editor-on-change #(task-editor-on-change! % task)
+         delete-on-click #(task-delete-on-click! % task app)
+         edit-on-click #(task-edit-on-click! % editor-id)]
+     (dom/div {:class (str class " task")}
+              (dom/a {:href "javascript:void(0);"
+                      :on-click on-click}
+                     (dom/pre {:class "txt"} txt))
+              (dom/div {:class "task-action-panel"}
+                       (dom/a {:class "action"
+                               :href "javascript:void(0);"
+                               :on-click edit-on-click}
+                              "Edit")
+                       (dom/a {:class "action"
+                               :href "javascript:void(0);"
+                               :on-click delete-on-click}
+                              "Remove")
+                       (dom/textarea {:id editor-id
+                                      :class "hover-editor"
+                                      :value txt
+                                      :on-change editor-on-change}))))))
 
-(defcomponent task-view [[task cursor] _]
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; All Tasks View
+
+(defcomponent tasks-view [app _]
   (render
    [_]
-   (let [{:keys [id type]} task
-         icon-id (str "icon-" id)
-         icon (condp = (:type task)
-                :done "&#10007;"
-                :started "&#10004;"
-                :todo "&#8734;"
-                :removed "&#9850;"
-                "Icon Not Found")]
-     (dom/tr
-      (dom/td
-       (dom/a
-        {:id id
-         :href "javascript:void(0);"
-         :on-click
-         (fn [_]                     
-           (om/transact! cursor
-                         (fn [state]
-                           (let [types (cycle (:percents state))
-                                 next-type (second
-                                            (drop-while #(not= % type)
-                                                        types))
-                                 task (assoc (find-task id state)
-                                        :type next-type)
-                                 tasks (-> id
-                                           (without-task state)
-                                           (conj task))
-                                 tasks (->> tasks
-                                            (sort-by :id)
-                                             vec)]
-                             (assoc state :tasks tasks)))))}
-         (dom/div #js {:className "table icon entry"
-                       :dangerouslySetInnerHTML #js {:__html icon}})
-         (dom/div 
-          {:class "table task"} 
-          (:text task)
-          (dom/br {})))
-        (om/build delete-task-view [id cursor])
-       (om/build edit-task-view [id cursor]))))))
+   (dom/div
+    (om/build-all task-view
+                  (mapv #(vector % app) (:tasks app))))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Add Confirm View Toggle
 
-(defcomponent tasks-view [app owner]
+(defn add-message-show! [& _]
+  (go
+    (let [id "add-message"]
+      (-> js/document
+          (.getElementById id)
+          .-style
+          .-display
+          (set! "block")))))
+
+(defn add-message-close! [& _]
+  (go
+    (let [id "add-message"]
+      (-> js/document
+          (.getElementById id)
+          .-style
+          .-display
+          (set! "none")))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Add Confirm Event Functions
+
+(defn add-to-list! [add-fn app]
+  (go
+    (om/transact! app
+                  [:tasks]
+                  (fn [state]
+                    (add-fn state)))
+    (calculate-percent! app)))
+
+(defn add-to-list-top! [_ app]
+  (go
+    (let [task (new-task)]
+      (println task)
+      (add-to-list! (fn [state]
+                      (reduce conj [task] state))
+                    app)
+      (add-message-close!))))
+
+(defn add-to-list-bottom! [_ app]
+  (go
+    (let [task (new-task)]
+      (add-to-list! (fn [state]
+                      (conj state task))
+                    app)
+      (add-message-close!))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Add Confirm View
+
+(defcomponent add-message-view [app _]
   (render
    [_]
-   (let [with-cursor (map #(vector % app) 
-                          (:tasks app))]
-     (dom/table
-      {:class "eigth columns"}
-      (dom/tbody 
-       (om/build-all task-view with-cursor))))))
+   (dom/div
+    {:id "add-message"
+     :class "row"}
+    (dom/div
+     {:class "three columns"}
+     (dom/h4
+      {:id "add-message-text"}
+      "Adding Task")) 
+    (dom/div 
+     {:class "four columns"}
+     (dom/div
+      {:class "menu-option"} 
+      (dom/button
+       {:on-click #(add-to-list-top! % app)}
+       "Top"))
+     (dom/div 
+      {:class "menu-option"} 
+      (dom/button
+       {:on-click #(add-to-list-bottom! % app)}
+       "Bottom"))
+     (dom/div
+      {:class "menu-option"} 
+      (dom/button
+       {:class "cancel"
+        :on-click add-message-close!}
+       "Cancel"))))))
 
-(om/root
- tasks-view
- app-state
- {:target (. js/document
-             (getElementById "task-table-body"))})
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Menu View Toggle
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; NOTES
+(defn menu-message-show! [& _]
+  (go
+    (let [id "menu-message"]
+      (-> js/document
+          (.getElementById id)
+          .-style
+          .-display
+          (set! "block")))))
 
-(defn without-note [id cursor]
-  (->> (:notes cursor)
-       (remove #(= id (:id %)))))
+(defn menu-message-close! [& _]
+  (go
+    (let [id "menu-message"]
+      (-> js/document
+          (.getElementById id)
+          .-style
+          .-display
+          (set! "none")))))
 
-(defn find-note [id cursor]
-  (first
-   (filter #(= id (:id %))
-           (:notes cursor))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; User Action Bar View
 
-(defn new-note [text cursor]
-  (om/transact! cursor
-                [:notes]
-                (fn [state]
-                  (conj state
-                        {:id (.getTime (js/Date.))
-                         :text text}))))
-
-(defcomponent add-note-button-view [cursor _]
+(defcomponent button-view [_ _]
   (render
    [_]
-   (dom/a {:href "javascript:void(0);"
-           :on-click (fn [_]
-                       (if-let [text (js/prompt "Note")]
-                         (new-note text cursor)))}
-    (dom/span #js {:dangerouslySetInnerHTML #js {:__html "&#10010;"}})
-    (dom/span {:class "table icon text"} "ADD"))))
+   (dom/div
+    {:class "row"
+     :id "button-row"}
+    (dom/a {:href "javascript:void(0);"
+            :id "add-button"
+            :on-click add-message-show!}
+           "+")
+    (dom/br {})
+    (dom/a {:href "javascript:void(0);"
+            :id "menu-button"
+            :on-click menu-message-show!}
+           "<>"))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Task Exportation
 
-(om/root
- add-note-button-view
- app-state
- {:target (. js/document (getElementById "add-note"))})
+(defn export-of-tasks
+  ([app]
+   (export-of-tasks app true))
+  ([app as-string?]
+   (let [coll (:tasks @app)]
+     (if-not as-string?
+       coll
+       (pr-str coll)))))
 
-(defcomponent edit-note-view [[id cursor] _]
+(defn export-tasks!
+  [_  app]
+  (let [blob (js/Blob. #js [(export-of-tasks app)]
+                       #js {"type" "text/html"})
+        url (.createObjectURL js/URL blob)]
+    (.open js/window url)
+    (menu-message-close!)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Task Importation
+
+(defn import-tasks!
+  [_ app]
+  (if-let [tasks (js/prompt "Please paste your exported data")]
+    (let [tasks (try
+                  (cljs.reader/read-string tasks)
+                  (catch js/Object ex [false]))]
+      (if-not (every? map? tasks)
+        (js/alert "Failed to import. Invalid syntax.")
+        (do (om/update! app [:tasks] tasks)
+            (calculate-percent! app)
+            (menu-message-close!))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Server Save and Load
+
+(defn server-save! [_ app]
+  (POST "/save"
+        {:params {:tasks (:tasks @app)}
+         :format :transit
+         :handler (fn [_]
+                    (menu-message-close!))
+         :error-handler (fn [_]                
+                          (js/alert
+                           "Couldn't Save! Is the server running?"))}))
+
+(defn server-load! [_ app]
+  (GET "/load"
+       {:handler (fn [x]
+                   (let [{:keys [tasks]} (transit/read (transit/reader :json)
+                                                       x)]
+                     (om/update! app [:tasks] tasks)
+                     (calculate-percent! app)
+                     (menu-message-close!)))
+        :error-handler (fn [_]
+                         (js/alert
+                          "Couldn't Save! Is the server running?"))}))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Main Menu View
+
+(defcomponent menu-view [app _]
   (render
    [_]
-   (let [text (:text (find-note id cursor))]
-     (dom/a
-      {:href "javascript:void(0);"}
-      (dom/div
-       {:class "control"
-        :on-click
-        (fn [_]
-          (if-let [text (js/prompt "Edit" text)]
-            (om/transact! cursor
-                          (fn [cursor]
-                            (let [wo (without-note id cursor)
-                                  note (find-note id cursor)
-                                  note (assoc note :text text)
-                                  notes (vec
-                                         (sort-by :id
-                                                  (conj wo note)))]
-                              (assoc-in cursor [:notes] notes))))))}
-       "Edit")))))
+   (dom/div
+    {:id "menu-message"
+     :class "row"}
+    (dom/div
+     {:class "three columns"}
+     (dom/h4 "Easy.does.it"))
+    (dom/div
+     {:class "four columns"}
+     (dom/div {:class "menu-option"} 
+              (dom/button
+               {:on-click #(export-tasks! % app)}
+               "Export"))
+     (dom/div {:class "menu-option"} 
+              (dom/button
+               {:on-click #(import-tasks! % app)}
+               "Import"))
+     (dom/div {:class "menu-option"}
+              (dom/button
+               {:on-click #(server-save! % app)}
+               "Save"))
+     (dom/div {:class "menu-option"
+               :on-click #(server-load! % app)}
+              (dom/button "Load"))
+     (dom/div {:class "menu-option"}
+              (dom/button
+               {:class "cancel"
+                :on-click menu-message-close!} "Cancel"))))))
 
-(defcomponent delete-note-view [[id cursor] _]
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Application View
+
+(defcomponent main-view [app owner]
+  (will-mount
+   [_]
+   (calculate-percent! app))
   (render
    [_]
-   (dom/a {:href "javascript:void(0);"}
-          (dom/div
-           {:class "control"
-            :on-click
-            (fn [_]
-              (if (js/confirm "WARNING: Delete?")
-                (om/transact! cursor
-                              (fn [cursor]
-                                (let [notes (without-note id cursor)]
-                                  (assoc cursor :notes notes))))))}
-                   "Delete"))))
+   (dom/div
+    
+    (om/build button-view app)
+    
+    (om/build add-message-view app)
 
-(defcomponent note-view [[note cursor] _]
-  (render
-   [_]
-   (let [id (:id note)]
-     (dom/tr
-      (dom/td
-       (dom/div 
-        {:class "table note"} 
-        (:text note)
-        (dom/br {})
-        (om/build delete-note-view [id cursor])
-        (om/build edit-note-view [id cursor])))))))
+    (om/build delete-confirm-view app)
+    
+    (om/build menu-view app)
+    
+    (dom/div {:class "row"}
+             (dom/span {:class "two columns"}
+                       (om/build task-bar app))
+             (dom/span {:class "one column"}
+                       (dom/br {}))
+             (dom/span {:id "todo-list" :class "six columns "}
+                       (om/build tasks-view app))))))
 
-(defcomponent notes-view [app owner]
-  (render
-   [_]
-   (let [with-cursor (map #(vector % app) 
-                          (:notes app))]
-     (dom/table
-      {:class "eigth columns"}
-      (dom/tbody 
-       (om/build-all note-view with-cursor))))))
-
-(om/root
- notes-view
- app-state
- {:target (. js/document
-             (getElementById "note-table-body"))})
-
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Application INIT
 
 (defn main []
-  (render-percent! :done)
-  (render-percent! :todo)
-  (render-percent! :started)
-  (render-percent! :removed)
-
-;;;;;;;;;;;;;;;;;;;;; LOAD MENU
-
-
-(-> js/document
-    (.getElementById "edn-import")
-    .-onclick
-    (set! (fn [_]
-            (if-let [edn (js/prompt "Paste EDN String")]
-              (let [edn (cljs.reader/read-string edn)]
-                (swap! app-state #(merge % edn)))))))                                             
-
-;;;;;;;;;;;;;;;;;;;; EXPORT MENU
-
-(-> js/document
-    (.getElementById "edn-export")
-    .-onclick
-    (set! (fn [_]
-            (let [{:keys [notes tasks]} @app-state
-                  m (hash-map :notes notes :tasks tasks)
-                  blob (js/Blob. #js [(pr-str m)] 
-                                 #js {"type" "text/html"})
-                  url (.createObjectURL js/URL blob)]
-              (.open js/window url)))))
-
-(-> js/document
-    (.getElementById "json-export")
-    .-onclick
-    (set! (fn [_]
-            (let [{:keys [notes tasks]} @app-state
-                  json (->> {:notes notes :tasks tasks}
-                            clj->js
-                           (.stringify js/JSON))
-                  blob (js/Blob. #js [json] 
-                                 #js {"type" "text/html"})
-                  url (.createObjectURL js/URL blob)]
-              (.open js/window url))))))
-  
-
+  (om/root
+   main-view
+   app-state
+   {:target (. js/document (getElementById "app"))}))

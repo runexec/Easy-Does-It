@@ -1,51 +1,75 @@
-# Easy Does It
+# Easy Does It 2 
 
-Client-side Standalone TODO
+Optionally server backed, color coded, task management with a percentage overview.
 
-[Live Demo](https://cdn.rawgit.com/runexec/Easy-Does-It/30fa5a87a9640216cb5ddf1671e264550e36edcf/STANDALONE/index.html)
+## Download and Run
 
-![alt text](preview/intro.png "Preview Intro Image")
+All available versions can be downloaded at =>
 
+https://github.com/runexec/Easy-Does-It
 
-Animation of the program.
+Using Git =>
 
-![alt text](preview/preview.gif "Preview GIF Image")
+`git clone https://github.com/runexec/Easy-Does-It`
 
-Screen responsive layout.
+If you choose to run the server, you can do so by running =>
 
-![alt text](preview/responsive.png "Preview Responsive Image")
+`lein run -m easy-does-it.server/run`
 
-# Download
+Older versions are still available at =>
 
-Standalone version is available as STANDALONE.zip .
+https://github.com/runexec/Easy-Does-It/releases
 
-# TODO
+## Watch and Use
 
-* Change the icons from WTF to something that doesn't suck
-* Add server detection
-* Add server aware specific features
-* Slap on some versioning information somewhere
-* Async calls to prevent blocks during large renders
+[Watch Demo Video](https://raw.githubusercontent.com/runexec/Easy-Does-It/master/readme/videos/preview.ogv)
 
-# Version 2 Preview
+Desktop
 
-[See it in action](https://raw.githubusercontent.com/runexec/Easy-Does-It/master/preview/v2.preview.ogv)
+![alt Desktop 1.png][readme/images/d1.png]
 
-![alt text](preview/v2.mobile.preview.png "Preview Responsive Image")
+Mobile
 
-![alt text](preview/v2.mobile.preview.2.png "Preview Responsive Image 2")
+![alt Mobile 1.png][readme/images/m1.png]
 
-![alt text](preview/v2.preview.png "Preview Image")
+Desktop
 
-![alt text](preview/v2.preview.2.png "Preview Image")
+![alt Desktop 2.png][readme/images/d2.png]
+
+Mobile
+
+![alt Mobile 2.png][readme/images/m2.png]
+
+Desktop
+
+![alt Desktop 3.png][readme/images/d3.png]
+
+Mobile
+
+![alt Mobile 3.png][readme/images/m3.png]
+
+Desktop
+
+![alt Desktop 4.png][readme/images/d4.png]
+
+Mobile
+
+![alt Mobile 4.png][readme/images/m4.png]
+
+Desktop
+
+![alt Desktop 5.png][readme/images/d5.png]
+
+Mobile
+
+![alt Mobile 5.png][readme/images/m5.png]
 
 ## Development
 
-Start a REPL (in a terminal: `lein repl`, or from Emacs: open a
-clj/cljs file in the project, then do `M-x cider-jack-in`. Make sure
-CIDER is up to date).
+Open a terminal and type `lein repl` to start a Clojure REPL
+(interactive prompt).
 
-In the REPL do
+In the REPL, type
 
 ```clojure
 (run)
@@ -88,11 +112,11 @@ heroku open
 Heroku uses [Foreman](http://ddollar.github.io/foreman/) to run your
 app, which uses the `Procfile` in your repository to figure out which
 server command to run. Heroku also compiles and runs your code with a
-Leiningen "production" profile, instead of "dev". To locally simulate
+Leiningen "uberjar" profile, instead of "dev". To locally simulate
 what Heroku does you can do:
 
 ``` sh
-lein with-profile -dev,+production uberjar && foreman start
+lein with-profile -dev,+uberjar uberjar && foreman start
 ```
 
 Now your app is running at
@@ -104,3 +128,7 @@ Copyright © 2014 Ryan Kelker
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
+
+## Chestnut
+
+Created with [Chestnut](http://plexus.github.io/chestnut/) 0.7.0-SNAPSHOT.

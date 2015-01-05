@@ -15,7 +15,9 @@
      (append  (html [:script {:type "text/javascript"} "goog.require('easy_does_it.dev')"]))))
 
 (defn browser-repl []
-  (piggieback/cljs-repl :repl-env (weasel/repl-env :ip "0.0.0.0" :port 9001)))
+  (let [repl-env (weasel/repl-env :ip "0.0.0.0" :port 9001)]
+    (piggieback/cljs-repl :repl-env repl-env)
+    (piggieback/cljs-eval repl-env '(in-ns 'easy-does-it.core) {})))
 
 (defn start-figwheel []
   (future
