@@ -26,43 +26,43 @@ https://github.com/runexec/Easy-Does-It/releases
 
 Desktop
 
-![alt Desktop 1.png][readme/images/d1.png]
+![alt Desktop-1.png](readme/images/d1.png)
 
 Mobile
 
-![alt Mobile 1.png][readme/images/m1.png]
+![alt Mobile-1.png](readme/images/m1.png)
 
 Desktop
 
-![alt Desktop 2.png][readme/images/d2.png]
+![alt Desktop-2.png](readme/images/d2.png)
 
 Mobile
 
-![alt Mobile 2.png][readme/images/m2.png]
+![alt Mobile-2.png](readme/images/m2.png)
 
 Desktop
 
-![alt Desktop 3.png][readme/images/d3.png]
+![alt Desktop-3.png](readme/images/d3.png)
 
 Mobile
 
-![alt Mobile 3.png][readme/images/m3.png]
+![alt Mobile-3.png](readme/images/m3.png)
 
 Desktop
 
-![alt Desktop 4.png][readme/images/d4.png]
+![alt Desktop-4.png](readme/images/d4.png)
 
 Mobile
 
-![alt Mobile 4.png][readme/images/m4.png]
+![alt Mobile-4.png](readme/images/m4.png)
 
 Desktop
 
-![alt Desktop 5.png][readme/images/d5.png]
+![alt Desktop-5.png](readme/images/d5.png)
 
 Mobile
 
-![alt Mobile 5.png][readme/images/m5.png]
+![alt Mobile-5.png](readme/images/m5.png)
 
 ## Development
 
