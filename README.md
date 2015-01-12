@@ -2,24 +2,6 @@
 
 Optionally server backed, color coded, task management with a percentage overview.
 
-## Download and Run
-
-All available versions can be downloaded at =>
-
-https://github.com/runexec/Easy-Does-It
-
-Using Git =>
-
-`git clone https://github.com/runexec/Easy-Does-It`
-
-If you choose to run the server, you can do so by running =>
-
-`lein run -m easy-does-it.server/run`
-
-Older versions are still available at =>
-
-https://github.com/runexec/Easy-Does-It/releases
-
 ## Watch and Use
 
 [Watch Demo Video](https://raw.githubusercontent.com/runexec/Easy-Does-It/master/readme/videos/preview.ogv)
@@ -63,6 +45,24 @@ Desktop
 Mobile
 
 ![alt Mobile-5.png](readme/images/m5.png)
+
+## Download and Run
+
+All available versions can be downloaded at =>
+
+https://github.com/runexec/Easy-Does-It
+
+Using Git =>
+
+`git clone https://github.com/runexec/Easy-Does-It`
+
+If you choose to run the server, you can do so by running =>
+
+`lein run -m easy-does-it.server/run`
+
+Older versions are still available at =>
+
+https://github.com/runexec/Easy-Does-It/releases
 
 ## Development
 
